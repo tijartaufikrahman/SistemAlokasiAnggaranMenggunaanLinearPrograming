@@ -1,0 +1,1154 @@
+@{
+    ViewData["Title"] = "Alokasi Anggaran";
+}
+
+@* ATURAN STYLING: Blok <style> WAJIB diletakkan di ATAS file konten *@
+<style>
+
+
+    /* ── Layout & Form ── */
+    .hdr-form-row { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-end; }
+    .hdr-form-col { flex: 1; min-width: 240px; }
+    .modal-3col { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: .85rem; }
+    .modal-3col .form-group { flex: 1; min-width: 150px; }
+    .modal-2col { display: flex; flex-wrap: wrap; gap: .85rem; }
+    .modal-2col .form-group { flex: 1; min-width: 170px; }
+
+    /* ── Form Controls ── */
+    .form-group { display: flex; flex-direction: column; gap: .35rem; }
+    .form-group.mb { margin-bottom: .85rem; }
+    .form-label { font-size: .82rem; font-weight: 600; color: var(--text-body, #334155); }
+    .lbl-req::after { content: " *"; color: #ef4444; }
+    .form-control { border: 1px solid var(--border-color, #e2e8f0); border-radius: var(--radius-md, 8px); padding: .55rem .75rem; font-size: .88rem; color: var(--text-main, #0f172a); outline: none; transition: all .15s; background: #fff; font-family: inherit; }
+    .form-control:focus { border-color: var(--primary, #1e3a8a); box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12); }
+    select.form-control { cursor: pointer; }
+    .input-pfx-wrap { display: flex; align-items: stretch; height: 38px; }
+    .input-pfx { background: var(--bg-muted, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-right: none; border-radius: 8px 0 0 8px; padding: 0 .75rem; font-size: .84rem; color: var(--primary, #1e3a8a); font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; }
+    .pfx-input { border-radius: 0 8px 8px 0; height: 38px; }
+    .field-error { font-size: .74rem; color: #ef4444; min-height: .9rem; line-height: 1.2; font-weight: 500; }
+
+    /* ── Live Metrics Card (Right Side) ── */
+    .summary-stat-box {
+        background: #ffffff;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: var(--radius-md, 10px);
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 0.85rem;
+        transition: all 0.2s ease;
+    }
+    .summary-stat-box:last-child {
+        margin-bottom: 0;
+    }
+    .summary-stat-box:hover {
+        border-color: var(--primary, #1e3a8a);
+        box-shadow: var(--shadow-xs);
+    }
+    .summary-stat-box.highlight {
+        background: linear-gradient(135deg, rgba(30,58,138,0.04) 0%, rgba(30,58,138,0.01) 100%);
+        border-left: 3px solid var(--primary, #1e3a8a);
+    }
+    .summary-stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.4rem;
+    }
+    .summary-stat-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted, #64748b);
+    }
+    .summary-stat-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+        background: var(--primary-50, #eff6ff);
+        color: var(--primary, #1e3a8a);
+    }
+    .summary-stat-value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: var(--text-main, #0f172a);
+        line-height: 1.2;
+    }
+    .summary-stat-desc {
+        font-size: 0.74rem;
+        color: var(--text-muted, #64748b);
+        margin-top: 0.25rem;
+    }
+
+    /* ── Messages ── */
+    .msg-info  { background: var(--primary-50, #eff6ff); border: 1px solid var(--primary-border, #bfdbfe); border-radius: 8px; padding: .65rem 1rem; color: var(--primary-700, #1e3a8a); font-size: .83rem; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+    .msg-error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: .65rem 1rem; color: #991b1b; font-size: .83rem; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+
+    /* ── Buttons ── */
+    .btn-save-hdr {
+        display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+        background: var(--primary, #1e3a8a);
+        color: #fff; border: 1px solid var(--primary, #1e3a8a); border-radius: 8px; padding: 0 1.3rem;
+        font-size: .88rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(30, 58, 138, 0.2); transition: all .15s ease; font-family: inherit;
+        height: 38px;
+    }
+    .btn-save-hdr:hover { background: var(--primary-hover, #172554); border-color: var(--primary-hover, #172554); color: #fff; }
+    .btn-save-hdr:disabled { background: #cbd5e1; border-color: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+    .btn-add {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: var(--primary, #1e3a8a);
+        color: #fff; border: 1px solid var(--primary, #1e3a8a); border-radius: 8px; padding: .55rem 1.2rem;
+        font-size: .85rem; font-weight: 600; cursor: pointer;
+        box-shadow: 0 1px 2px rgba(30, 58, 138, 0.2); transition: all .15s ease; font-family: inherit;
+    }
+    .btn-add:hover { background: var(--primary-hover, #172554); border-color: var(--primary-hover, #172554); color: #fff; }
+    .btn-reopen {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: #fff; color: #b45309; border: 1px solid #fde68a;
+        border-radius: 8px; padding: .55rem 1.15rem; font-size: .85rem; font-weight: 600;
+        cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .btn-reopen:hover { background: #fffbeb; border-color: #b45309; }
+    .btn-process {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: var(--primary, #1e3a8a);
+        color: #fff; border: 1px solid var(--primary, #1e3a8a); border-radius: 8px; padding: .65rem 1.6rem;
+        font-size: .92rem; font-weight: 600; cursor: pointer;
+        box-shadow: 0 1px 2px rgba(30, 58, 138, 0.2); transition: all .15s ease; font-family: inherit;
+    }
+    .btn-process:hover { background: var(--primary-hover, #172554); border-color: var(--primary-hover, #172554); color: #fff; }
+    .btn-process:disabled { background: #cbd5e1; border-color: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+    .btn-discard {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: #fff; color: #dc2626; border: 1px solid #fecaca;
+        border-radius: 8px; padding: .6rem 1.1rem; font-size: .85rem; font-weight: 600;
+        cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .btn-discard:hover { background: #fef2f2; border-color: #ef4444; }
+    .btn-edit-row { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; background: var(--primary-50, #eff6ff); border: 1px solid var(--primary-border, #bfdbfe); color: var(--primary-700, #1e3a8a); border-radius: 6px; padding: 0; font-size: .78rem; cursor: pointer; transition: all .15s; }
+    .btn-edit-row:hover { background: var(--primary, #1e3a8a); color: #fff; }
+    .btn-del { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #fecaca; color: #dc2626; border-radius: 6px; padding: 0; font-size: .78rem; cursor: pointer; transition: all .15s; }
+    .btn-del:hover { background: #ef4444; color: #fff; }
+    .btn-cancel { background: #ffffff; color: var(--text-body, #334155); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: .55rem 1.15rem; font-size: .86rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-cancel:hover { background: var(--bg-subtle, #f8fafc); color: var(--text-main, #0f172a); }
+    .btn-save-prog {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: var(--primary, #1e3a8a);
+        color: #fff; border: 1px solid var(--primary, #1e3a8a); border-radius: 8px; padding: .58rem 1.3rem;
+        font-size: .88rem; font-weight: 600; cursor: pointer;
+        box-shadow: 0 1px 2px rgba(30, 58, 138, 0.2); transition: all .15s ease; font-family: inherit;
+    }
+    .btn-save-prog:hover { background: var(--primary-hover, #172554); }
+    .btn-save-prog:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    /* ── Card footer ── */
+    .card-footer-action { display: flex; align-items: center; gap: .85rem; flex-wrap: wrap; padding: 1.15rem 1.5rem; border-top: 1px solid var(--border-subtle, #f1f5f9); background: var(--bg-muted, #f8fafc); border-radius: 0 0 var(--radius-lg, 14px) var(--radius-lg, 14px); }
+
+    /* ── Table Container & Padding ── */
+    .tbl-card-body {
+        padding: 0.65rem 0.85rem 0.85rem !important;
+    }
+    .tbl-resp { 
+        width: 100%; 
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 10px;
+        overflow-x: auto;
+    }
+    .tbl-data { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: .78rem; 
+        table-layout: fixed; 
+    }
+    .tbl-data thead th { 
+        background: var(--bg-muted, #f8fafc); 
+        color: var(--text-muted, #64748b); 
+        font-weight: 700; 
+        font-size: .68rem; 
+        letter-spacing: .02em; 
+        text-transform: uppercase; 
+        padding: 8px 4px; 
+        border-bottom: 1px solid var(--border-color, #e2e8f0); 
+        white-space: nowrap; 
+    }
+    .tbl-data thead th:first-child, .tbl-data tbody td:first-child { padding-left: 0.5rem; }
+    .tbl-data thead th:last-child, .tbl-data tbody td:last-child { padding-right: 0.5rem; }
+    .tbl-data td { 
+        padding: 7px 4px; 
+        border-bottom: 1px solid var(--border-subtle, #f1f5f9); 
+        color: var(--text-main, #0f172a); 
+        vertical-align: middle; 
+        background: #ffffff; 
+        font-size: .77rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .tbl-data td.prog-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .tbl-data tr:last-child td { border-bottom: none; }
+    .tbl-data tr:hover td { background: #fcfdfe; }
+    .tr { text-align: right !important; white-space: nowrap; }
+    .tc { text-align: center !important; }
+    .result-col { color: #047857; font-weight: 800; background: #f0fdf4 !important; }
+
+    /* ── Priority Badges ── */
+    .badge-p { display: inline-flex; align-items: center; justify-content: center; width: 1.45rem; height: 1.45rem; border-radius: 50%; font-size: .72rem; font-weight: 700; }
+    .badge-p.p1 { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+    .badge-p.p2 { background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a; }
+    .badge-p.p3 { background: #fefce8; color: #a16207; border: 1.5px solid #fef08a; }
+    .badge-p.p4 { background: #f0fdfa; color: #0f766e; border: 1.5px solid #99f6e4; }
+    .badge-p.p5 { background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; }
+
+    /* ── Status Program Badges ── */
+    .badge-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+    .badge-status.aktif { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-status.ditunda { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    /* ── Row Ditunda ── */
+    tr.row-ditunda td { background-color: #ffffff; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 3rem 1.5rem; }
+    .empty-state-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--bg-subtle, #f1f5f9); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .empty-state-icon i { font-size: 1.6rem; color: var(--text-light, #94a3b8); }
+    .empty-state p { color: var(--text-muted, #64748b); margin-top: .5rem; font-size: .88rem; max-width: 420px; margin: 0 auto; }
+
+    /* ── Result Summary Grid ── */
+    .res-banner {
+        background: #ffffff;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-left: 4px solid var(--primary, #1e3a8a);
+        border-radius: var(--radius-lg, 14px);
+        padding: 1.25rem 1.6rem;
+        margin-bottom: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        box-shadow: var(--shadow-xs);
+    }
+    .res-banner-title { font-size: 1.15rem; font-weight: 800; color: var(--text-main, #0f172a); margin-bottom: 2px; }
+    .res-banner-desc { font-size: 0.84rem; color: var(--text-muted, #64748b); }
+    .res-cards { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.4rem; }
+    .res-card  { flex: 1 1 200px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: var(--radius-md, 10px); padding: 1.15rem 1.25rem; display: flex; flex-direction: column; gap: .35rem; box-shadow: var(--shadow-xs); transition: box-shadow 0.15s ease, border-color 0.15s ease; }
+    .res-card:hover { box-shadow: var(--shadow-sm); border-color: #cbd5e1; }
+    .rc-lbl    { font-size: .75rem; color: var(--text-muted, #64748b); font-weight: 600; display: flex; align-items: center; gap: .4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .rc-val    { font-size: 1.35rem; font-weight: 800; color: var(--text-main, #0f172a); }
+    .progress-bar-wrap { height: 6px; background: var(--bg-subtle, #f1f5f9); border-radius: 6px; overflow: hidden; margin-top: 4px; }
+    .progress-bar-fill { height: 100%; background: var(--primary, #1e3a8a); border-radius: 6px; transition: width 0.6s ease; }
+
+    /* ── Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-box     { background: #ffffff; border-radius: var(--radius-lg, 14px); width: 100%; max-width: 660px; box-shadow: var(--shadow-xl); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; border: 1px solid var(--border-color, #e2e8f0); }
+    .modal-head    { display: flex; align-items: center; justify-content: space-between; padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0); font-weight: 700; font-size: 1rem; color: var(--text-main, #0f172a); background: #ffffff; }
+    .modal-close   { width: 30px; height: 30px; background: var(--bg-subtle, #f1f5f9); border: none; border-radius: 6px; font-size: 1.1rem; cursor: pointer; color: var(--text-muted, #64748b); display: flex; align-items: center; justify-content: center; transition: all .15s; }
+    .modal-close:hover { background: #e2e8f0; color: var(--text-main, #0f172a); }
+    .modal-body    { padding: 1.4rem 1.5rem; overflow-y: auto; background: #ffffff; }
+    .modal-foot    { display: flex; justify-content: flex-end; gap: .75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color, #e2e8f0); background: var(--bg-muted, #f8fafc); }
+</style>
+
+<!-- ATURAN STYLING: Konten WAJIB diawali dengan pembungkus <div class="row ..."> -->
+
+@* ========= TOP ACTION & PAGE HEADER ========= *@
+<div class="row g-3 mb-3" id="topActionCard">
+    <div class="col-12">
+        <div class="card" style="margin-bottom: 0; border: 1px solid var(--border-color, #e8eaf0); border-radius: var(--radius-lg, 14px); background: #ffffff; box-shadow: var(--shadow-xs);">
+            <div class="card-body" style="padding: 1rem 1.4rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(8, 145, 178, 0.12)); color: var(--primary, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main, #0f0e1a); letter-spacing: -0.01em;">
+                            Perencanaan & Alokasi Anggaran
+                        </h2>
+                        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted, #6b6b8d);">
+                            Kelola data Program Kegiatan dan Program Kegiatan Ditangguhkan, tentukan pagu dana, serta tetapkan rekomendasi alokasi anggaran.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" id="btnTambahProgramGlobal" onclick="openAddModal()" style="padding: 0.65rem 1.35rem; font-size: 0.88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.55rem; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28); border-radius: var(--radius-md, 10px);">
+                        <i class="fas fa-plus-circle" style="font-size: 1rem;"></i> Tambah Program
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ========= PANEL PROGRAM DITANGGUHKAN: FULL WIDTH DI ATAS DENGAN PEMBATAS ========= *@
+<div id="ditundaWrapper" style="display: none; margin-bottom: 1.5rem;">
+    <!-- Garis Pembatas / Header Program Ditangguhkan (di atas panel) -->
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <div style="flex: 1; height: 1px; background: #fde68a;"></div>
+        <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #92400e; background: #fffbeb; padding: 4px 14px; border-radius: 9999px; border: 1px solid #fde68a; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-pause-circle text-warning"></i> Program Kegiatan Ditangguhkan
+        </span>
+        <div style="flex: 1; height: 1px; background: #fde68a;"></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="card" id="ditundaPanel" style="margin-bottom: 0; border: 1px solid #fde68a;">
+                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1.4rem; background: #fffbeb; border-bottom: 1px solid #fde68a;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #fef3c7; color: #d97706; font-size: 0.9rem; border: 1px solid #fde68a;">
+                            <i class="fas fa-pause-circle"></i>
+                        </span>
+                        <div>
+                            <h3 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: #92400e;">
+                                Program Kegiatan Ditangguhkan (<span id="ditundaCountBadge">0</span>)
+                            </h3>
+                            <p style="margin: 0; font-size: 0.75rem; color: #b45309;">
+                                Daftar program kegiatan yang ditangguhkan sementara dan tidak diikutsertakan dalam penetapan alokasi anggaran.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body tbl-card-body">
+                    <div class="tbl-resp">
+                        <table class="tbl-data" id="ditundaTable">
+                            <thead>
+                                <tr>
+                                    <th class="tc" style="width: 32px;">No</th>
+                                    <th>Nama Program Kegiatan</th>
+                                    <th class="tr" style="width: 104px;">Anggaran Diajukan</th>
+                                    <th class="tr" style="width: 92px;">Batas Min</th>
+                                    <th class="tr" style="width: 92px;">Batas Maks</th>
+                                    <th class="tc" style="width: 46px;">Prioritas</th>
+                                    <th class="tc" style="width: 44px;">Manfaat</th>
+                                    <th class="tc" style="width: 64px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ditundaTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Garis Pembatas Antara Program Ditangguhkan & Program Kegiatan -->
+    <div style="display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0 0.5rem;">
+        <div style="flex: 1; height: 1px; background: var(--border-color, #e2e8f0);"></div>
+        <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted, #64748b); background: var(--bg-app, #f8fafc); padding: 3px 12px; border-radius: 9999px; border: 1px solid var(--border-color, #e2e8f0); display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-layer-group me-1"></i> Program Kegiatan
+        </span>
+        <div style="flex: 1; height: 1px; background: var(--border-color, #e2e8f0);"></div>
+    </div>
+</div>
+
+<div class="row g-3" id="inputWorkspaceRow">
+    <div class="col-xl-9 col-lg-8 col-12" style="align-self: flex-start;">
+        @* ========= PANEL 1: PROGRAM KEGIATAN ========= *@
+        <div class="card" id="programPanel" style="margin-bottom: 0; min-height: 350px; display: flex; flex-direction: column;">
+            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: nowrap; padding: 0.85rem 1.35rem;">
+                <div style="flex: 1; min-width: 0;">
+                    <h3 style="margin: 0 0 2px 0; font-size: 0.98rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                        Program Kegiatan
+                    </h3>
+                    <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted, #64748b); line-height: 1.4;">
+                        Daftar usulan program kegiatan yang diikutsertakan dalam proses perhitungan dan penetapan alokasi anggaran.
+                    </p>
+                </div>
+            </div>
+            <div class="card-body tbl-card-body flex-grow-1" style="display: flex; flex-direction: column;">
+                <div id="emptyProgram" class="empty-state" style="margin: auto 0; padding: 2.5rem 1.5rem; text-align: center;">
+                    <div class="empty-state-icon" style="width: 58px; height: 58px; border-radius: 50%; background: #f5f3ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 1.5rem; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12);">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 0.35rem;">
+                        Belum Ada Program Kegiatan yang Didaftarkan
+                    </h4>
+                    <p style="color: var(--text-muted, #64748b); max-width: 440px; margin: 0 auto; font-size: 0.84rem; line-height: 1.5;">
+                        Belum ada program kegiatan yang didaftarkan. Klik tombol <strong>Tambah Program</strong> di atas untuk memasukkan usulan ke dalam Program Kegiatan.
+                    </p>
+                </div>
+
+                <!-- Tabel program yang sudah disimpan -->
+                <div id="programTableWrap" style="display:none;">
+                    <div class="tbl-resp">
+                        <table class="tbl-data" id="programTable">
+                            <thead>
+                                <tr>
+                                    <th class="tc" style="width: 32px;">No</th>
+                                    <th>Nama Program Kegiatan</th>
+                                    <th class="tr" style="width: 104px;">Anggaran Diajukan</th>
+                                    <th class="tr" style="width: 92px;">Batas Min</th>
+                                    <th class="tr" style="width: 92px;">Batas Maks</th>
+                                    <th class="tc" style="width: 46px;">Prioritas</th>
+                                    <th class="tc" style="width: 44px;">Manfaat</th>
+                                    <th class="tc" style="width: 64px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="programTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* ========= PANEL KANAN: RINGKASAN PORTOFOLIO & PENETAPAN PLAFON PAGU ========= *@
+    <div class="col-xl-3 col-lg-4 col-12" id="summaryMetricsCol">
+        <div class="position-sticky" style="top: calc(var(--topbar-height, 64px) + 1.25rem); display: flex; flex-direction: column; gap: 1.25rem;">
+            <!-- CARD 1: Ringkasan Portofolio -->
+            <div class="card" style="margin-bottom: 0;">
+                <div class="card-header" style="padding: 0.95rem 1.25rem; border-bottom: 1px solid var(--border-color, #e2e8f0);">
+                    <h3 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                        Ringkasan Portofolio
+                    </h3>
+                </div>
+                <div class="card-body" style="padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.65rem;">
+                    <!-- Metrik 1: Program Kegiatan -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem;">
+                        <span style="font-weight: 600; color: var(--text-muted, #64748b);">Program Kegiatan :</span>
+                        <span class="summary-stat-value" id="metricCountAktif" style="font-size: 0.95rem; font-weight: 700; color: #047857;">
+                            0 Program
+                        </span>
+                    </div>
+
+                    <!-- Divider Tipis -->
+                    <hr style="border: 0; border-top: 1px solid var(--border-subtle, #f1f5f9); margin: 0.2rem 0;" />
+
+                    <!-- Metrik 2: Total Usulan Anggaran Aktif -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem;">
+                        <span style="font-weight: 600; color: var(--text-muted, #64748b);">Total anggaran yang diajukan :</span>
+                        <span class="summary-stat-value" id="metricTotalDiajukanAktif" style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #7c3aed);">
+                            Rp0
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2: Parameter Alokasi -->
+            <div class="card" id="headerPanel" style="margin-bottom: 0;">
+                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; padding: 0.95rem 1.25rem; border-bottom: 1px solid var(--border-color, #e2e8f0);">
+                    <div>
+                        <h3 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: var(--text-main, #0f172a);">Parameter Alokasi</h3>
+                        <p style="margin: 2px 0 0; font-size: 0.76rem; color: var(--text-muted, #64748b);">Tentukan pagu dana dan catatan</p>
+                    </div>
+                    <div id="headerStatusBadge" style="display:none;"></div>
+                </div>
+                <div class="card-body" style="padding: 1.35rem;">
+                    <div class="form-group mb-3">
+                        <label class="form-label lbl-req" for="inpTotalDana" style="font-size: 0.84rem; font-weight: 600;">Total Anggaran Disediakan</label>
+                        <div class="input-pfx-wrap">
+                            <span class="input-pfx">Rp</span>
+                            <input type="text" id="inpTotalDana" class="form-control pfx-input" placeholder="0" oninput="fmtRupiah(this)" style="height:40px;" />
+                        </div>
+                        <div class="field-error" id="errTotalDana"></div>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="inpCatatan" style="font-size: 0.84rem; font-weight: 600;">Catatan / Deskripsi Alokasi</label>
+                        <textarea id="inpCatatan" class="form-control" placeholder="Contoh: Penetapan Alokasi Anggaran Belanja Modal TW-1" maxlength="255" rows="4" style="font-size: 0.85rem; min-height: 85px; resize: vertical;"></textarea>
+                        <div class="field-error" id="errCatatan"></div>
+                    </div>
+                    <div id="prosesMsg" class="msg-error" style="display:none; margin-top: .85rem;"></div>
+                </div>
+                <div class="card-footer-action" style="padding: 1rem 1.35rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                    <button type="button" class="btn-process" id="btnProses" onclick="prosesAlokasi()" style="width: 100%; justify-content: center; padding: 0.7rem 1.25rem;">
+                        <i class="fas fa-calculator"></i> Hitung Alokasi Anggaran
+                    </button>
+                    <button type="button" class="btn-discard" id="btnDiscard" onclick="discardDraft()" style="width: 100%; justify-content: center; padding: 0.55rem 1rem;">
+                        <i class="fas fa-rotate-left"></i> Reset Usulan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ========= PANEL HASIL ========= *@
+<div class="row" id="hasilWorkspaceRow" style="display:none;">
+    <div class="col-12">
+        <div class="card" id="hasilPanel">
+            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:nowrap;">
+                <div style="min-width:0;">
+                    <h3 style="margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Rekomendasi Alokasi Anggaran</h3>
+                    <p style="margin:0;font-size:0.8rem;color:var(--text-muted,#64748b);">Pratinjau pembagian alokasi dana per program. Periksa rincian sebelum menyimpannya ke riwayat.</p>
+                </div>
+                <div style="display:flex;gap:.6rem;flex-shrink:0;margin-left:auto;">
+                    <button type="button" class="btn-save-prog" id="btnSimpanHasil" onclick="simpanHasilKeHistory()" style="background:#059669;border-color:#059669;">
+                        <i class="fas fa-check-circle"></i> Simpan ke Riwayat
+                    </button>
+                    <button type="button" class="btn-reopen" onclick="reopenDraft()">
+                        <i class="fas fa-edit"></i> Edit & Hitung Ulang
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="tbl-resp">
+                    <table class="tbl-data">
+                        <thead>
+                            <tr>
+                                <th class="tc" style="width:3rem;">No</th>
+                                <th>Nama Program Kegiatan</th>
+                                <th class="tc">Anggaran Diajukan</th>
+                                <th class="tc">Batas Min</th>
+                                <th class="tc">Batas Maks</th>
+                                <th class="tc">Prioritas</th>
+                                <th class="tc">Skor Manfaat</th>
+                                <th class="tc result-col">Alokasi Optimal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hasilTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ========= MODAL TAMBAH / EDIT PROGRAM ========= *@
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOverlay(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-head">
+            <span id="modalTitle">Tambah Program</span>
+            <button type="button" class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editProgramId" value="" />
+            <div class="form-group mb">
+                <label class="form-label lbl-req">Nama Program Kegiatan</label>
+                <input type="text" id="mNama" class="form-control" placeholder="Contoh: Peningkatan Mutu Pelayanan Publik" maxlength="200" />
+                <div class="field-error" id="mErrNama"></div>
+            </div>
+            <div class="modal-3col">
+                <div class="form-group">
+                    <label class="form-label">Anggaran Diajukan</label>
+                    <div class="input-pfx-wrap">
+                        <span class="input-pfx">Rp</span>
+                        <input type="text" id="mDiajukan" class="form-control pfx-input" placeholder="0" oninput="fmtRupiah(this)" />
+                    </div>
+                    <div class="field-error" id="mErrDiajukan"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Batas Minimum</label>
+                    <div class="input-pfx-wrap">
+                        <span class="input-pfx">Rp</span>
+                        <input type="text" id="mMinimum" class="form-control pfx-input" placeholder="0" oninput="fmtRupiah(this)" />
+                    </div>
+                    <div class="field-error" id="mErrMinimum"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Batas Maksimum</label>
+                    <div class="input-pfx-wrap">
+                        <span class="input-pfx">Rp</span>
+                        <input type="text" id="mMaksimum" class="form-control pfx-input" placeholder="0" oninput="fmtRupiah(this)" />
+                    </div>
+                    <div class="field-error" id="mErrMaksimum"></div>
+                </div>
+            </div>
+            <div class="modal-3col">
+                <div class="form-group">
+                    <label class="form-label lbl-req">Tingkat Prioritas</label>
+                    <select id="mPrioritas" class="form-control">
+                        <option value="">-- Pilih Prioritas --</option>
+                        <option value="5">5 - Sangat Tinggi (Paling Utama)</option>
+                        <option value="4">4 - Tinggi</option>
+                        <option value="3">3 - Sedang (Standar)</option>
+                        <option value="2">2 - Rendah</option>
+                        <option value="1">1 - Sangat Rendah</option>
+                    </select>
+                    <div class="field-error" id="mErrPrioritas"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label lbl-req">Skor Estimasi Manfaat (0–100)</label>
+                    <input type="number" id="mManfaat" class="form-control" placeholder="Nilai 0 - 100" min="0" max="100" />
+                    <div class="field-error" id="mErrManfaat"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label lbl-req">Status Program</label>
+                    <select id="mStatus" class="form-control">
+                        <option value="Aktif" selected>Aktif</option>
+                        <option value="Ditunda">Ditunda</option>
+                    </select>
+                    <div class="field-error" id="mErrStatus"></div>
+                </div>
+            </div>
+            <div class="field-error" id="mErrGlobal" style="margin-top:.5rem;font-size:.84rem;"></div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+            <button type="button" class="btn-save-prog" id="btnSaveProgram" onclick="saveProgram()">
+                <i class="fas fa-save"></i> Simpan Program
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ================================================================
+    //  STATE & DATA MAP
+    // ================================================================
+    var alokasiId = null;
+    var programDataMap = {};
+    var getCsrfToken = function () {
+        return $('meta[name="csrf-token"]').attr('content') || '';
+    };
+
+    // ================================================================
+    //  FORMAT RUPIAH
+    // ================================================================
+    function fmtRupiah(el) {
+        var raw = $(el).val().replace(/\D/g, '');
+        $(el).val(raw ? Number(raw).toLocaleString('id-ID') : '');
+    }
+
+    function parseRp(str) {
+        if (!str || str.trim() === '') return null;
+        var n = parseFloat(str.replace(/\./g, '').replace(',', '.'));
+        return isNaN(n) ? null : n;
+    }
+
+    function toRp(val) {
+        if (val === null || val === undefined || val === '') return '-';
+        return 'Rp' + Number(val).toLocaleString('id-ID');
+    }
+
+    function esc(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // ================================================================
+    //  LOAD DRAFT ON PAGE LOAD via $.ajax()
+    // ================================================================
+    function loadDraft() {
+        $.ajax({
+            url: '/AlokasiAnggaran/GetDraft',
+            type: 'GET',
+            dataType: 'json',
+            success: function (d) {
+                if (!d || !d.hasDraft) {
+                    updateProgramMetrics();
+                    return;
+                }
+
+                alokasiId = d.id;
+                if (d.catatan) {
+                    $('#inpCatatan').val(d.catatan);
+                }
+                if (d.totalDana && d.totalDana > 0) {
+                    $('#inpTotalDana').val(Number(d.totalDana).toLocaleString('id-ID'));
+                }
+
+                if (d.programs && d.programs.length > 0) {
+                    $.each(d.programs, function (i, p) {
+                        programDataMap[p.id] = p;
+                        appendOrUpdateProgramRow(p);
+                    });
+                    showProgramTable();
+                }
+                updateProgramMetrics();
+            },
+            error: function (xhr, status, error) {
+                console.warn('Draft belum tersedia atau gagal memuat:', error);
+                updateProgramMetrics();
+            }
+        });
+    }
+
+    // ================================================================
+    //  UPDATE LIVE PROGRAM METRICS
+    // ================================================================
+    function updateProgramMetrics() {
+        var count = 0;
+        var countAktif = 0;
+        var countDitunda = 0;
+        var totalDiajukan = 0;
+        var totalDiajukanAktif = 0;
+        var totalDiajukanDitunda = 0;
+        var totalMin = 0;
+        var totalMaks = 0;
+
+        for (var id in programDataMap) {
+            var p = programDataMap[id];
+            count++;
+            var isAktif = (p.statusProgram !== 'Ditunda');
+            if (isAktif) {
+                countAktif++;
+                if (p.anggaranDiajukan) totalDiajukanAktif += Number(p.anggaranDiajukan);
+            } else {
+                countDitunda++;
+                if (p.anggaranDiajukan) totalDiajukanDitunda += Number(p.anggaranDiajukan);
+            }
+            if (p.anggaranDiajukan) totalDiajukan += Number(p.anggaranDiajukan);
+            if (p.anggaranMinimum) totalMin += Number(p.anggaranMinimum);
+            if (p.anggaranMaksimum) totalMaks += Number(p.anggaranMaksimum);
+        }
+
+        $('#metricCount').text(count + ' Program');
+        $('#metricCountAktif').text(countAktif + ' Program');
+        $('#metricTotalDiajukanAktif').text(toRp(totalDiajukanAktif));
+
+        if (countDitunda > 0) {
+            $('#metricCountDitunda').text(countDitunda + ' Program');
+            $('#rowStatDitunda').show();
+        } else {
+            $('#rowStatDitunda').hide();
+        }
+    }
+
+    // ================================================================
+    //  MODAL TAMBAH & EDIT PROGRAM
+    // ================================================================
+    function openAddModal() {
+        clearModalErrors();
+        $('#editProgramId').val('');
+        $('#modalTitle').text('Tambah Program');
+        $('#mNama, #mDiajukan, #mMinimum, #mMaksimum, #mManfaat').val('');
+        $('#mPrioritas').val('');
+        $('#mStatus').val('Aktif');
+        $('#modalOverlay').css('display', 'flex');
+        $('#mNama').focus();
+    }
+
+    function openEditModal(id) {
+        var p = programDataMap[id];
+        if (!p) return;
+        clearModalErrors();
+        $('#editProgramId').val(p.id);
+        $('#modalTitle').text('Edit Program');
+
+        $('#mNama').val(p.namaProgram || '');
+        $('#mDiajukan').val(p.anggaranDiajukan ? Number(p.anggaranDiajukan).toLocaleString('id-ID') : '');
+        $('#mMinimum').val(p.anggaranMinimum ? Number(p.anggaranMinimum).toLocaleString('id-ID') : '');
+        $('#mMaksimum').val(p.anggaranMaksimum ? Number(p.anggaranMaksimum).toLocaleString('id-ID') : '');
+        $('#mPrioritas').val(p.tingkatPrioritas || '');
+        $('#mManfaat').val(p.estimasiManfaat !== undefined ? p.estimasiManfaat : '');
+        $('#mStatus').val(p.statusProgram || 'Aktif');
+
+        $('#modalOverlay').css('display', 'flex');
+        $('#mNama').focus();
+    }
+
+    function closeModal() {
+        $('#modalOverlay').hide();
+    }
+
+    function closeModalOverlay(ev) {
+        if (ev && ev.target === $('#modalOverlay')[0]) {
+            closeModal();
+        }
+    }
+
+    function clearModalErrors() {
+        $('#mErrNama, #mErrDiajukan, #mErrMinimum, #mErrMaksimum, #mErrPrioritas, #mErrManfaat, #mErrStatus, #mErrGlobal').text('');
+    }
+
+    // ================================================================
+    //  SIMPAN PROGRAM (ADD / EDIT) via $.ajax()
+    // ================================================================
+    function saveProgram() {
+        clearModalErrors();
+        var editId = parseInt($('#editProgramId').val()) || 0;
+        var nama = $('#mNama').val().trim();
+        var diajukan = parseRp($('#mDiajukan').val());
+        var minimum  = parseRp($('#mMinimum').val());
+        var maksimum = parseRp($('#mMaksimum').val());
+        var prioritas = parseInt($('#mPrioritas').val());
+        var manfaat   = parseInt($('#mManfaat').val());
+        var status    = $('#mStatus').val() || 'Aktif';
+
+        var ok = true;
+        if (!nama) {
+            $('#mErrNama').text('Nama program wajib diisi.');
+            ok = false;
+        }
+        if (diajukan === null && minimum === null && maksimum === null) {
+            $('#mErrDiajukan').text('Minimal salah satu anggaran harus diisi.');
+            ok = false;
+        }
+        if (diajukan !== null && diajukan < 0) {
+            $('#mErrDiajukan').text('Tidak boleh negatif.');
+            ok = false;
+        }
+        if (minimum !== null && minimum < 0) {
+            $('#mErrMinimum').text('Tidak boleh negatif.');
+            ok = false;
+        }
+        if (maksimum !== null && maksimum < 0) {
+            $('#mErrMaksimum').text('Tidak boleh negatif.');
+            ok = false;
+        }
+        if (minimum !== null && maksimum !== null && minimum > maksimum) {
+            $('#mErrMinimum').text('Minimum tidak boleh lebih besar dari maksimum.');
+            ok = false;
+        }
+        if (!$('#mPrioritas').val() || isNaN(prioritas) || prioritas < 1 || prioritas > 5) {
+            $('#mErrPrioritas').text('Tingkat prioritas harus 1–5.');
+            ok = false;
+        }
+        if ($('#mManfaat').val() === '' || isNaN(manfaat) || manfaat < 0 || manfaat > 100) {
+            $('#mErrManfaat').text('Estimasi manfaat harus 0–100.');
+            ok = false;
+        }
+        if (!ok) return;
+
+        var $btn = $('#btnSaveProgram');
+        var isEdit = editId > 0;
+        var endpoint = isEdit ? '/AlokasiAnggaran/UpdateProgram' : '/AlokasiAnggaran/AddProgram';
+        var payload = isEdit
+            ? { id: editId, alokasiId: alokasiId || 0, namaProgram: nama, anggaranDiajukan: diajukan, anggaranMinimum: minimum, anggaranMaksimum: maksimum, tingkatPrioritas: prioritas, estimasiManfaat: manfaat, statusProgram: status }
+            : { alokasiId: alokasiId || 0, namaProgram: nama, anggaranDiajukan: diajukan, anggaranMinimum: minimum, anggaranMaksimum: maksimum, tingkatPrioritas: prioritas, estimasiManfaat: manfaat, statusProgram: status };
+
+        $.ajax({
+            url: endpoint,
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: { 'RequestVerificationToken': getCsrfToken() },
+            data: JSON.stringify(payload),
+            beforeSend: function () {
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+            },
+            success: function (d) {
+                if (!d.success) {
+                    $('#mErrGlobal').text(d.message);
+                    return;
+                }
+                if (d.alokasiId) {
+                    alokasiId = d.alokasiId;
+                }
+                programDataMap[d.program.id] = d.program;
+                appendOrUpdateProgramRow(d.program);
+                showProgramTable();
+                updateProgramMetrics();
+                closeModal();
+            },
+            error: function () {
+                $('#mErrGlobal').text('Gagal menyimpan. Coba lagi.');
+            },
+            complete: function () {
+                $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Simpan Program');
+            }
+        });
+    }
+
+    // ================================================================
+    //  RENDER / UPDATE BARIS PROGRAM
+    // ================================================================
+    function appendOrUpdateProgramRow(p) {
+        var isDitunda = (p.statusProgram === 'Ditunda');
+        var targetTbodyId = isDitunda ? '#ditundaTbody' : '#programTbody';
+        var otherTbodyId = isDitunda ? '#programTbody' : '#ditundaTbody';
+
+        // Jika status berubah saat edit, hapus dari tabel sebelumnya
+        $(otherTbodyId).find('tr[data-id="' + p.id + '"]').remove();
+
+        var $tbody = $(targetTbodyId);
+        var $tr = $tbody.find('tr[data-id="' + p.id + '"]');
+        var isNew = $tr.length === 0;
+
+        if (isNew) {
+            $tr = $('<tr data-id="' + p.id + '"></tr>');
+        }
+
+        if (isDitunda) {
+            $tr.addClass('row-ditunda');
+        } else {
+            $tr.removeClass('row-ditunda');
+        }
+
+        $tr.html(
+            '<td class="tc"></td>' +
+            '<td class="prog-name" title="' + esc(p.namaProgram) + '"><strong>' + esc(p.namaProgram) + '</strong></td>' +
+            '<td class="tr">' + toRp(p.anggaranDiajukan) + '</td>' +
+            '<td class="tr">' + toRp(p.anggaranMinimum) + '</td>' +
+            '<td class="tr">' + toRp(p.anggaranMaksimum) + '</td>' +
+            '<td class="tc"><span class="badge-p p' + p.tingkatPrioritas + '">' + p.tingkatPrioritas + '</span></td>' +
+            '<td class="tc">' + p.estimasiManfaat + '</td>' +
+            '<td class="tc">' +
+                '<div style="display:flex;gap:4px;justify-content:center;align-items:center;">' +
+                    '<button type="button" class="btn-edit-row" onclick="openEditModal(' + p.id + ')" title="Edit Program"><i class="fas fa-pen"></i></button>' +
+                    '<button type="button" class="btn-del" onclick="deleteProgram(' + p.id + ', this)" title="Hapus Program"><i class="fas fa-trash-alt"></i></button>' +
+                '</div>' +
+            '</td>'
+        );
+
+        if (isNew) {
+            $tbody.append($tr);
+        }
+        showProgramTable();
+    }
+
+    function showProgramTable() {
+        var nAktif = $('#programTbody tr').length;
+        var nDitunda = $('#ditundaTbody tr').length;
+
+        if (nAktif > 0) {
+            $('#emptyProgram').hide();
+            $('#programTableWrap').show();
+        } else {
+            $('#programTableWrap').hide();
+            $('#emptyProgram').show();
+        }
+
+        if (nDitunda > 0) {
+            $('#ditundaCountBadge').text(nDitunda);
+            $('#ditundaWrapper').show();
+        } else {
+            $('#ditundaWrapper').hide();
+        }
+
+        renumberRows();
+    }
+
+    function renumberRows() {
+        $('#programTbody tr').each(function (i) {
+            $(this).find('td:first').text(i + 1);
+        });
+        $('#ditundaTbody tr').each(function (i) {
+            $(this).find('td:first').text(i + 1);
+        });
+    }
+
+    // ================================================================
+    //  HAPUS PROGRAM via $.ajax()
+    // ================================================================
+    function deleteProgram(id, btn) {
+        if (!confirm('Hapus program ini?')) return;
+        var $btn = $(btn);
+        $btn.prop('disabled', true);
+
+        $.ajax({
+            url: '/AlokasiAnggaran/DeleteProgram',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: { 'RequestVerificationToken': getCsrfToken() },
+            data: JSON.stringify({ id: id }),
+            success: function (d) {
+                if (!d.success) {
+                    alert(d.message);
+                    $btn.prop('disabled', false);
+                    return;
+                }
+                delete programDataMap[id];
+                $btn.closest('tr').remove();
+                showProgramTable();
+                updateProgramMetrics();
+            },
+            error: function () {
+                alert('Gagal menghapus program.');
+                $btn.prop('disabled', false);
+            }
+        });
+    }
+
+    // ================================================================
+    //  PROSES ALOKASI & RE-RUN via $.ajax()
+    // ================================================================
+    function prosesAlokasi() {
+        $('#errTotalDana, #errCatatan').text('');
+        $('#prosesMsg').hide();
+
+        var nProg = $('#programTbody tr').length;
+        if (nProg === 0) {
+            showProsesMsg('Daftarkan minimal satu usulan program terlebih dahulu.', true);
+            return;
+        }
+
+        var catatan = $('#inpCatatan').val().trim();
+        var totalDana = parseRp($('#inpTotalDana').val());
+
+        var ok = true;
+        if (!totalDana || totalDana <= 0) {
+            $('#errTotalDana').text('Total dana pagu tersedia harus lebih besar dari 0.');
+            ok = false;
+        }
+        if (!ok) return;
+
+        var $btn = $('#btnProses');
+
+        $.ajax({
+            url: '/AlokasiAnggaran/Proses',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: { 'RequestVerificationToken': getCsrfToken() },
+            data: JSON.stringify({ id: alokasiId, catatan: catatan, totalDana: totalDana }),
+            beforeSend: function () {
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menghitung Alokasi...');
+            },
+            success: function (d) {
+                if (!d.success) {
+                    showProsesMsg(d.message, true);
+                    return;
+                }
+                tampilkanHasil(d.data);
+            },
+            error: function () {
+                showProsesMsg('Terjadi kesalahan saat memproses data. Silakan coba lagi.', true);
+            },
+            complete: function () {
+                $btn.prop('disabled', false).html('<i class="fas fa-calculator"></i> Hitung Alokasi Anggaran');
+            }
+        });
+    }
+
+    function showProsesMsg(msg, isError) {
+        var $el = $('#prosesMsg');
+        $el.text(msg).attr('class', isError ? 'msg-error' : 'msg-info').show();
+    }
+
+    // ================================================================
+    //  TAMPILKAN HASIL
+    // ================================================================
+    function updateStepper(step) {
+        $('.stepper-step').removeClass('active completed');
+        if (step === 1) {
+            $('#step1').addClass('active');
+        } else if (step === 2) {
+            $('#step1').addClass('completed');
+            $('#step2').addClass('active');
+        } else if (step === 3) {
+            $('#step1, #step2').addClass('completed');
+            $('#step3').addClass('active');
+        }
+    }
+
+    function tampilkanHasil(data) {
+        $('#topActionCard').hide();
+        $('#ditundaWrapper').hide();
+        $('#inputWorkspaceRow').hide();
+        $('#hasilWorkspaceRow').show();
+        updateStepper(3);
+
+        var rowsHtml = '';
+        $.each(data.programs, function (i, p) {
+            rowsHtml += '<tr>' +
+                '<td class="tc">' + (i + 1) + '</td>' +
+                '<td><strong>' + esc(p.namaProgram) + '</strong></td>' +
+                '<td class="tc">' + toRp(p.anggaranDiajukan) + '</td>' +
+                '<td class="tc">' + toRp(p.anggaranMinimum) + '</td>' +
+                '<td class="tc">' + toRp(p.anggaranMaksimum) + '</td>' +
+                '<td class="tc"><span class="badge-p p' + p.tingkatPrioritas + '">' + p.tingkatPrioritas + '</span></td>' +
+                '<td class="tc">' + p.estimasiManfaat + '</td>' +
+                '<td class="tc result-col">' + toRp(p.alokasiOptimal) + '</td>' +
+            '</tr>';
+        });
+
+        $('#hasilTbody').html(rowsHtml);
+        $('#btnSimpanHasil').prop('disabled', false).html('<i class="fas fa-check-circle"></i> Simpan ke Riwayat');
+        $('html, body').animate({ scrollTop: 0 }, 'smooth');
+    }
+
+    // ================================================================
+    //  SIMPAN HASIL KE RIWAYAT via $.ajax()
+    // ================================================================
+    function simpanHasilKeHistory() {
+        if (!alokasiId) {
+            alert('ID Alokasi tidak valid.');
+            return;
+        }
+
+        var $btn = $('#btnSimpanHasil');
+        $.ajax({
+            url: '/AlokasiAnggaran/SimpanHasil',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: { 'RequestVerificationToken': getCsrfToken() },
+            data: JSON.stringify({ id: alokasiId }),
+            beforeSend: function () {
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+            },
+            success: function (d) {
+                if (!d.success) {
+                    alert(d.message || 'Gagal menyimpan hasil alokasi.');
+                    $btn.prop('disabled', false).html('<i class="fas fa-check-circle"></i> Simpan ke Riwayat');
+                    return;
+                }
+                alert(d.message || 'Hasil alokasi berhasil disimpan ke Riwayat!');
+                window.location.href = '/AlokasiAnggaran/History';
+            },
+            error: function (xhr) {
+                var msg = 'Terjadi kesalahan saat menyimpan alokasi.';
+                if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else if (xhr && xhr.responseText) {
+                    try {
+                        var parsed = JSON.parse(xhr.responseText);
+                        if (parsed && parsed.message) msg = parsed.message;
+                    } catch(e) {}
+                }
+                alert(msg);
+                $btn.prop('disabled', false).html('<i class="fas fa-check-circle"></i> Simpan ke Riwayat');
+            }
+        });
+    }
+
+    // ================================================================
+    //  EDIT & HITUNG ULANG (KEMBALI KE WORKSPACE INPUT DRAFT)
+    // ================================================================
+    function reopenDraft() {
+        $('#hasilWorkspaceRow').hide();
+        $('#topActionCard').show();
+        $('#inputWorkspaceRow').show();
+        showProgramTable();
+        $('html, body').animate({ scrollTop: 0 }, 'smooth');
+    }
+
+    // ================================================================
+    //  BUAT ALOKASI BARU (CLEAR ALL)
+    // ================================================================
+    function mulaiAlokasiBar() {
+        alokasiId = null;
+        for (var k in programDataMap) {
+            delete programDataMap[k];
+        }
+
+        $('#hasilWorkspaceRow').hide();
+        $('#topActionCard').show();
+        $('#inputWorkspaceRow').show();
+        $('#inpCatatan, #inpTotalDana').val('');
+        $('#programTbody, #ditundaTbody').empty();
+        $('#ditundaWrapper').hide();
+        $('#programTableWrap').hide();
+        $('#emptyProgram').show();
+        $('#prosesMsg').hide();
+        updateProgramMetrics();
+        if (typeof updateStepper === 'function') updateStepper(1);
+    }
+
+    // ================================================================
+    //  DISCARD DRAFT via $.ajax()
+    // ================================================================
+    function discardDraft() {
+        if (!alokasiId) {
+            mulaiAlokasiBar();
+            return;
+        }
+        if (!confirm('Buat ulang? Semua program yang sudah didaftarkan pada draft ini akan dihapus.')) return;
+
+        $.ajax({
+            url: '/AlokasiAnggaran/DiscardDraft',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: { 'RequestVerificationToken': getCsrfToken() },
+            data: JSON.stringify({ id: alokasiId }),
+            complete: function () {
+                mulaiAlokasiBar();
+            }
+        });
+    }
+
+    // Init
+    $(function () {
+        loadDraft();
+    });
+</script>
+}

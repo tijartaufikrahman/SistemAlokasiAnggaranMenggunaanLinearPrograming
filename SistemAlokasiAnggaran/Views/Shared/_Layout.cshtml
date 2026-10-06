@@ -1,0 +1,235 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject SistemAlokasiAnggaran.Interfaces.IMenuRoleRepository MenuRoleRepo
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <title>@ViewData["Title"] - FinAlok Optimization Platform</title>
+
+    <!-- Google Fonts: Inter for clean modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- ATURAN 1: Tepat sesudah <body> WAJIB langsung dibungkus container-fluid overflow-hidden -->
+    <div class="container-fluid overflow-hidden px-0 position-relative min-vh-100 d-flex flex-column">
+        @{
+            var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+            var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "Pengguna";
+            var userInitial = userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "U";
+            var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+            var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+            var roleIdClaim = User.FindFirst("RoleId")?.Value;
+            var sidebarMenus = new List<SistemAlokasiAnggaran.Models.Entities.MenuRole>();
+            if (int.TryParse(roleIdClaim, out int roleId))
+            {
+                sidebarMenus = (await MenuRoleRepo.GetByRoleIdAsync(roleId)).ToList();
+            }
+        }
+
+        @if (currentAction == "Database")
+        {
+            <link rel="stylesheet" href="~/css/database.css" asp-append-version="true" />
+        }
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <nav class="sidebar" id="sidebar">
+                <div class="sidebar-brand">
+                    <div class="sidebar-brand-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="sidebar-brand-text">
+                        <h3>FinAlok</h3>
+                        <p>Enterprise Platform</p>
+                    </div>
+                </div>
+                <div class="sidebar-nav" id="sidebarNav">
+                    <div class="nav-section">MENU</div>
+                    @foreach (var menu in sidebarMenus)
+                    {
+                        var menuUrl = menu.Url ?? "";
+                        var segments = menuUrl.Trim('/').Split('/');
+                        var menuController = segments.Length > 0 ? segments[0] : "";
+                        var menuAction = segments.Length > 1 ? segments[1] : "Index";
+                        var isActive = currentController.Equals(menuController, StringComparison.OrdinalIgnoreCase)
+                            && currentAction.Equals(menuAction, StringComparison.OrdinalIgnoreCase);
+
+                        <a class="nav-link @(isActive ? "active" : "")" href="@menuUrl">
+                            @if (!string.IsNullOrEmpty(menu.Icon))
+                            {
+                                <i class="@menu.Icon"></i>
+                            }
+                            @menu.NamaMenu
+                        </a>
+                    }
+                    @if (!sidebarMenus.Any())
+                    {
+                        <span style="padding:12px 20px;color:#94a3b8;font-size:.8rem;">Tidak ada menu</span>
+                    }
+                </div>
+                <div class="sidebar-footer">
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0" onsubmit="handleLogoutClient()">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-logout" style="width:100%;cursor:pointer;border:none;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </nav>
+
+            <div class="main-content" id="mainContent">
+                <header class="topbar">
+                    <div class="topbar-main">
+                        <div class="topbar-left">
+                            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle menu" onclick="toggleSidebar()">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <span class="topbar-title">@ViewData["Title"]</span>
+                        </div>
+                        <div class="topbar-account">
+                            <div class="account-chip">
+                                <div class="user-avatar">@userInitial</div>
+                                <div class="account-copy">
+                                    <div class="user-name">@userName</div>
+                                    <div class="user-role">@userRole</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="page-content">
+                    @{
+                        var isDashboard = currentAction.Equals("Dashboard", StringComparison.OrdinalIgnoreCase)
+                            || (currentController.Equals("Admin", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Dashboard", StringComparison.OrdinalIgnoreCase))
+                            || (currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase));
+
+                        var homeMenu = sidebarMenus.FirstOrDefault(m => m.Url != null && (m.Url.Contains("/Dashboard", StringComparison.OrdinalIgnoreCase) || m.Url.Equals("/Home/Index", StringComparison.OrdinalIgnoreCase)))
+                            ?? sidebarMenus.OrderBy(m => m.Urutan).FirstOrDefault();
+                        var homeUrl = homeMenu?.Url ?? (userRole.Equals("Admin", StringComparison.OrdinalIgnoreCase) ? "/Admin/Dashboard" : "/Home/Index");
+                        var homeName = homeMenu?.NamaMenu ?? "Dashboard";
+                        var homeIcon = homeMenu?.Icon ?? "fas fa-tachometer-alt";
+
+                        var matchingMenu = sidebarMenus.FirstOrDefault(m => {
+                            if (string.IsNullOrEmpty(m.Url)) return false;
+                            var segs = m.Url.Trim('/').Split('/');
+                            var ctrl = segs.Length > 0 ? segs[0] : "";
+                            var act = segs.Length > 1 ? segs[1] : "Index";
+                            return currentController.Equals(ctrl, StringComparison.OrdinalIgnoreCase)
+                                && currentAction.Equals(act, StringComparison.OrdinalIgnoreCase);
+                        });
+
+                        if (matchingMenu == null)
+                        {
+                            if (currentController.Equals("AlokasiAnggaran", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Detail", StringComparison.OrdinalIgnoreCase))
+                            {
+                                matchingMenu = sidebarMenus.FirstOrDefault(m => m.Url != null && m.Url.Contains("History", StringComparison.OrdinalIgnoreCase));
+                            }
+
+                            if (matchingMenu == null)
+                            {
+                                matchingMenu = sidebarMenus.FirstOrDefault(m => {
+                                    if (string.IsNullOrEmpty(m.Url)) return false;
+                                    var segs = m.Url.Trim('/').Split('/');
+                                    var ctrl = segs.Length > 0 ? segs[0] : "";
+                                    return currentController.Equals(ctrl, StringComparison.OrdinalIgnoreCase);
+                                });
+                            }
+                        }
+
+                        var activeMenuName = matchingMenu?.NamaMenu ?? currentController;
+                        var activeMenuUrl = matchingMenu?.Url ?? ("/" + currentController + "/" + currentAction);
+                        var activeMenuIcon = matchingMenu?.Icon ?? (currentAction.Equals("Privacy", StringComparison.OrdinalIgnoreCase) ? "fas fa-shield-alt" : "fas fa-folder");
+                        if (currentAction.Equals("Privacy", StringComparison.OrdinalIgnoreCase))
+                        {
+                            activeMenuName = "Kebijakan Privasi";
+                        }
+
+                        bool isSubPage = false;
+                        string subTitle = (ViewData["BreadcrumbSub"] as string) ?? "";
+
+                        if (currentController.Equals("AlokasiAnggaran", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Detail", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isSubPage = true;
+                            subTitle = !string.IsNullOrEmpty(subTitle) ? subTitle : "Detail Alokasi";
+                        }
+                        else if (!string.IsNullOrEmpty(subTitle))
+                        {
+                            isSubPage = true;
+                        }
+                    }
+
+                    @if (!isDashboard)
+                    {
+                        <div class="breadcrumb-bar">
+                            @if (isSubPage)
+                            {
+                                <a href="@activeMenuUrl" class="breadcrumb-item" style="text-decoration:none;color:var(--text-muted);">
+                                    @activeMenuName
+                                </a>
+                                <span style="color:var(--text-light,#94a3b8);font-size:0.75rem;">/</span>
+                                <span class="breadcrumb-item current" id="breadcrumbSub">
+                                    @subTitle
+                                </span>
+                                <span style="color:var(--text-light,#94a3b8);font-size:0.75rem;">/</span>
+                            }
+                            else
+                            {
+                                <span class="breadcrumb-item current" id="breadcrumbSub">
+                                    @activeMenuName
+                                </span>
+                                <span style="color:var(--text-light,#94a3b8);font-size:0.75rem;">/</span>
+                            }
+                        </div>
+                    }
+                    @RenderBody()
+                </div>
+            </div>
+
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebarOverlay()"></div>
+        }
+        else
+        {
+            @RenderBody()
+        }
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- App JS -->
+    <script src="~/js/api-config.js?v=@DateTime.UtcNow.Ticks" asp-append-version="true"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    <script>
+        function handleLogoutClient() {
+            try {
+                if (window.AuthSession && typeof window.AuthSession.removeUser === 'function') {
+                    window.AuthSession.removeUser();
+                }
+                localStorage.removeItem('jwtToken');
+                localStorage.removeItem('currentUser');
+                document.cookie = "jwtToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+                document.cookie = "userName=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+                document.cookie = "userRole=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+            } catch (e) {}
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

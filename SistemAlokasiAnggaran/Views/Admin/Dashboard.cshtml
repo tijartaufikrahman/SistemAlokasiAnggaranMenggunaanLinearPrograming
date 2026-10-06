@@ -1,0 +1,305 @@
+@{
+    ViewData["Title"] = "Executive Dashboard";
+}
+
+@* ATURAN STYLING: Blok <style> WAJIB diletakkan di bagian ATAS file konten *@
+<style>
+    /* ====================================================================== */
+    /* DASHBOARD EXECUTIVE REDESIGN — CLEAN ENTERPRISE SAAS                   */
+    /* Human-designed, zero AI-gimmicks, NO top colored borders               */
+    /* ====================================================================== */
+    
+    /* Sembunyikan breadcrumb di dashboard sesuai permintaan user */
+    .breadcrumb-bar {
+        display: none !important;
+    }
+
+    /* KPI Metric Cards — Minimal, Solid, Zero Tacky Top Borders */
+    .kpi-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.35rem 1.5rem;
+        box-shadow: var(--shadow-xs);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-strong);
+    }
+    .kpi-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.85rem;
+    }
+    .kpi-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+    }
+    .kpi-icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius-md);
+        background: var(--bg-subtle);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    .kpi-number {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+    }
+    .kpi-foot {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Module Card Grid */
+    .module-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.15rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 0.65rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.15s ease;
+        height: auto;
+    }
+    .module-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+    .module-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .module-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius-md);
+        background: var(--bg-subtle);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+    .module-card:hover .module-icon {
+        background: var(--primary);
+        color: #ffffff;
+    }
+    .module-title {
+        font-size: 0.925rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+    }
+    .module-desc {
+        font-size: 0.825rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+        margin: 0;
+    }
+    .module-link-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 0.25rem;
+    }
+
+
+    /* Diagnostic Health List */
+    .diag-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .diag-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .diag-label {
+        font-size: 0.825rem;
+        font-weight: 600;
+        color: var(--text-body);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .diag-val {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+</style>
+
+<!-- ATURAN STYLING: Elemen terluar konten Razor View WAJIB dibungkus <div class="row"> -->
+<!-- Row 1: 2 Clean KPI Cards (Hanya Pengguna Terdaftar & History Alokasi Tersimpan) -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3 mb-md-0">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Pengguna Terdaftar</span>
+                <div class="kpi-icon-box"><i class="fas fa-users"></i></div>
+            </div>
+            <div>
+                <div id="statUsers" class="kpi-number">0</div>
+                <div class="kpi-foot">
+                    <span class="badge badge-success"><i class="fas fa-check"></i> Aktif</span>
+                    <span>Akses pengguna terautentikasi sistem</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">History Alokasi Tersimpan</span>
+                <div class="kpi-icon-box"><i class="fas fa-chart-pie"></i></div>
+            </div>
+            <div>
+                <div id="statAlokasi" class="kpi-number">0</div>
+                <div class="kpi-foot">
+                    <span class="badge badge-primary">Optimasi</span>
+                    <span>Total sesi komputasi Simplex LP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Fitur & Modul Sistem dan Informasi Sistem -->
+<div class="row mb-4 align-items-start">
+    <!-- Kolom Kiri: Fitur & Modul Sistem (Col 8) -->
+    <div class="col-lg-8 mb-4 mb-lg-0">
+        <div class="card mb-0">
+            <div class="card-header">
+                <h3>Fitur & Modul Operasional FinAlok</h3>
+                <span class="badge badge-neutral">Fitur Platform</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="/AlokasiAnggaran/Index" class="module-card">
+                            <div class="module-head">
+                                <div class="module-icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <div>
+                                    <h4 class="module-title">Alokasi Anggaran</h4>
+                                    <span style="font-size:0.75rem;color:var(--text-muted);">Simplex Linear Programming</span>
+                                </div>
+                            </div>
+                            <p class="module-desc">Input pagu anggaran, batasan minimum/maksimum, dan pembobotan skala prioritas untuk optimasi alokasi dana.</p>
+                            <span class="module-link-text">Buka Modul Alokasi <i class="fas fa-arrow-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/AlokasiAnggaran/History" class="module-card">
+                            <div class="module-head">
+                                <div class="module-icon"><i class="fas fa-history"></i></div>
+                                <div>
+                                    <h4 class="module-title">History Anggaran</h4>
+                                    <span style="font-size:0.75rem;color:var(--text-muted);">Arsip & Detail Alokasi</span>
+                                </div>
+                            </div>
+                            <p class="module-desc">Telusuri riwayat alokasi anggaran tersimpan, status optimalitas kalkulasi, serta rincian dana tiap program.</p>
+                            <span class="module-link-text">Buka Riwayat Alokasi <i class="fas fa-arrow-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kolom Kanan: Informasi Sistem (Col 4) -->
+    <div class="col-lg-4">
+        <!-- Informasi Sistem Card -->
+        <div class="card mb-0">
+            <div class="card-header">
+                <h3>Informasi Sistem</h3>
+                <span class="badge badge-neutral">Spesifikasi</span>
+            </div>
+            <div class="card-body">
+                <div class="diag-item">
+                    <div class="diag-label"><i class="fas fa-database text-muted"></i> Database</div>
+                    <span class="diag-val">SQLite Relational</span>
+                </div>
+                <div class="diag-item">
+                    <div class="diag-label"><i class="fas fa-square-root-variable text-muted"></i> Algoritma</div>
+                    <span class="diag-val">Simplex Linear Programming</span>
+                </div>
+                <div class="diag-item">
+                    <div class="diag-label"><i class="fas fa-code text-muted"></i> Bahasa Pemrograman</div>
+                    <span class="diag-val">C#</span>
+                </div>
+                <div class="diag-item">
+                    <div class="diag-label"><i class="fas fa-code-branch text-muted"></i> Framework</div>
+                    <span class="diag-val">.NET 8.0</span>
+                </div>
+                <div class="diag-item">
+                    <div class="diag-label"><i class="fas fa-shield-halved text-muted"></i> Autentikasi</div>
+                    <span class="diag-val">JWT & Cookie Auth</span>
+                </div>
+                <div class="diag-item">
+                    <div class="diag-label"><i class="fas fa-tag text-muted"></i> Versi Sistem</div>
+                    <span class="badge badge-primary" style="font-size:0.75rem;padding:3px 10px;font-weight:700;">v1.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ATURAN REQUEST: Wajib struktur lengkap $.ajax() (DILARANG $.get / $.post)
+    function loadDashboardStats() {
+        $.ajax({
+            url: '/Admin/GetDashboardStats',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                $('#statUsers').text(data.totalUsers || 0);
+                $('#statAlokasi').text(data.totalAlokasi || 0);
+            },
+            error: function (xhr, status, error) {
+                console.error('Gagal mengambil data statistik dashboard:', error);
+            }
+        });
+    }
+
+    $(function () {
+        loadDashboardStats();
+    });
+</script>
+}

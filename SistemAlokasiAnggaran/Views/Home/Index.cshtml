@@ -1,0 +1,451 @@
+@model SistemAlokasiAnggaran.Models.ViewModels.HalamanDepanViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@* ATURAN STYLING: Blok <style> WAJIB di bagian ATAS file konten *@
+<style>
+    /* Dashboard Executive Light Palette */
+    .kpi-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .kpi-card {
+        flex: 1 1 220px;
+        background: #ffffff;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: var(--radius-lg, 14px);
+        padding: 1.25rem 1.35rem;
+        box-shadow: var(--shadow-xs);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-strong, #cbd5e1);
+    }
+    .kpi-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    .kpi-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted, #64748b);
+    }
+    .kpi-icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius-md, 10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    .kpi-icon-box.navy {
+        background: var(--primary-50, #eff6ff);
+        color: var(--primary, #1e3a8a);
+        border: 1px solid var(--primary-border, #bfdbfe);
+    }
+    .kpi-icon-box.emerald {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+    .kpi-icon-box.amber {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+    .kpi-icon-box.slate {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+    }
+    .kpi-number {
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: var(--text-main, #0f172a);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.35rem;
+    }
+    .kpi-foot {
+        font-size: 0.75rem;
+        color: var(--text-muted, #64748b);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Welcome Hero Card */
+    .home-hero {
+        background: #ffffff;
+        border-radius: var(--radius-lg, 14px);
+        padding: 2rem 2.25rem;
+        color: var(--text-main, #0f172a);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-xs);
+        border: 1px solid var(--border-color, #e2e8f0);
+    }
+    .home-hero-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-bottom: 0.45rem;
+        letter-spacing: -0.02em;
+        color: var(--text-main, #0f172a);
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+    .home-hero-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted, #64748b);
+        max-width: 720px;
+        line-height: 1.6;
+        margin-bottom: 1.35rem;
+    }
+    .btn-primary-action {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        background: var(--primary, #1e3a8a);
+        color: #fff;
+        border: 1px solid var(--primary, #1e3a8a);
+        border-radius: var(--radius-md, 8px);
+        padding: .65rem 1.45rem;
+        font-size: .88rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(30, 58, 138, 0.2);
+        transition: all .15s ease;
+        font-family: inherit;
+    }
+    .btn-primary-action:hover {
+        background: var(--primary-hover, #172554);
+        border-color: var(--primary-hover, #172554);
+        color: #fff;
+        text-decoration: none;
+    }
+
+    /* Overview Highlights */
+    .highlight-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: var(--radius-lg, 14px);
+        padding: 1.25rem 1.4rem;
+        box-shadow: var(--shadow-xs);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    .hl-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .hl-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted, #64748b);
+        line-height: 1.5;
+        margin: 0;
+    }
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 9999px;
+        background: #f1f5f9;
+        overflow: hidden;
+        margin: 0.85rem 0 0.4rem;
+    }
+    .progress-fill {
+        height: 100%;
+        background: var(--primary, #1e3a8a);
+        border-radius: 9999px;
+        transition: width 0.3s ease;
+    }
+
+    /* Weekly History Table */
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .table-data {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+    .table-data thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 11px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    .table-data td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #0f172a;
+        vertical-align: middle;
+        background: #ffffff;
+    }
+    .table-data tbody tr:hover td {
+        background: #fcfdfe;
+    }
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 9px;
+        border-radius: var(--radius-pill, 9999px);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-optimal {
+        background: #eff6ff;
+        color: #1e3a8a;
+        border: 1px solid #bfdbfe;
+    }
+    .badge-nosol {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+    .btn-table-detail {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #eff6ff;
+        color: #1e3a8a;
+        border: 1px solid #bfdbfe;
+        border-radius: 6px;
+        padding: 5px 11px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .15s ease;
+    }
+    .btn-table-detail:hover {
+        background: #1e3a8a;
+        color: #ffffff;
+        border-color: #1e3a8a;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+    }
+    .empty-state-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: var(--bg-subtle, #f1f5f9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+    }
+    .empty-state-icon i {
+        font-size: 1.5rem;
+        color: var(--text-light, #94a3b8);
+    }
+</style>
+
+<!-- ATURAN STYLING: Pembungkus konten WAJIB diawali dengan <div class="row ..."> -->
+<div class="row">
+    <div class="col-12">
+        <!-- Section 1: Ringkasan Informasi Utama Keuangan & Anggaran -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Sesi Alokasi Dikelola</span>
+                    <div class="kpi-icon-box navy"><i class="fas fa-file-invoice-dollar"></i></div>
+                </div>
+                <div>
+                    <div class="kpi-number">@Model.TotalHistoryCount</div>
+                    <div class="kpi-foot">
+                        <span class="badge-status badge-optimal"><i class="fas fa-check-circle"></i> Selesai Diproses</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Total Pagu Anggaran</span>
+                    <div class="kpi-icon-box emerald"><i class="fas fa-vault"></i></div>
+                </div>
+                <div>
+                    <div class="kpi-number" style="font-size:1.45rem;">@Model.TotalDanaDialokasikan.ToRupiah()</div>
+                    <div class="kpi-foot">
+                        <span style="color:#059669;font-weight:600;"><i class="fas fa-coins"></i> Akumulasi Pagu Plafon</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Realisasi Alokasi Dana</span>
+                    <div class="kpi-icon-box navy"><i class="fas fa-chart-pie"></i></div>
+                </div>
+                <div>
+                    <div class="kpi-number" style="font-size:1.45rem;color:var(--primary, #1e3a8a);">@Model.TotalDanaTerserap.ToRupiah()</div>
+                    <div class="kpi-foot">
+                        <span style="color:var(--primary, #1e3a8a);font-weight:600;"><i class="fas fa-bullseye"></i> @Model.RataRataPenyerapan% Terserap Efektif</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Total Usulan Program</span>
+                    <div class="kpi-icon-box amber"><i class="fas fa-list-check"></i></div>
+                </div>
+                <div>
+                    <div class="kpi-number">@Model.TotalProgramCount</div>
+                    <div class="kpi-foot">
+                        <span style="color:#d97706;font-weight:600;"><i class="fas fa-layer-group"></i> Program Terdaftar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Banner Sambutan & Ajakan Bertindak -->
+        <div class="home-hero">
+            <div class="home-hero-title">
+                <i class="fas fa-chart-line text-primary"></i> Selamat Datang di FinAlok, Manajer Perencanaan
+            </div>
+            <div class="home-hero-subtitle">
+                Platform FinAlok Enterprise berbasis metode Simplex Linear Programming. Optimalkan distribusi portofolio anggaran secara presisi, akuntabel, dan transparan.
+            </div>
+            <div>
+                <a href="/AlokasiAnggaran/Index" class="btn-primary-action">
+                    <i class="fas fa-play-circle"></i> Mulai Alokasi Anggaran
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 3: Informasi Ringkas Status Penyerapan & Efisiensi Anggaran -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-4">
+                <div class="highlight-card">
+                    <div>
+                        <div class="hl-title"><i class="fas fa-chart-simple text-primary"></i> Tingkat Penyerapan Dana</div>
+                        <p class="hl-desc">Rata-rata persentase plafon pagu dana yang terserap ke program kegiatan prioritas.</p>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: @(Model.RataRataPenyerapan)%;"></div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--text-main);font-weight:700;display:flex;justify-content:space-between;margin-top:6px;">
+                        <span>Efisiensi Penyerapan</span>
+                        <span>@Model.RataRataPenyerapan%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="highlight-card">
+                    <div>
+                        <div class="hl-title"><i class="fas fa-shield-halved text-primary"></i> Akuntabilitas Perencanaan</div>
+                        <p class="hl-desc">Setiap alokasi dana divalidasi dengan batasan pagu minimum, pagu maksimum, serta skor prioritas program.</p>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <span class="badge-status badge-optimal"><i class="fas fa-circle-check"></i> Kebijakan Akuntabel</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="highlight-card">
+                    <div>
+                        <div class="hl-title"><i class="fas fa-clock-rotate-left text-primary"></i> Tata Kelola Arsip & Audit</div>
+                        <p class="hl-desc">Riwayat pembagian anggaran terdokumentasi dan dapat dicetak atau ditinjau ulang kapan saja.</p>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <a href="/AlokasiAnggaran/History" style="font-size:0.78rem;color:var(--primary);font-weight:700;text-decoration:none;">
+                            Buka Arsip Dokumen <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Table Riwayat 1 Minggu Kebelakang Alokasi Anggaran -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Riwayat Alokasi Anggaran (1 Minggu Terakhir)</h3>
+                <a href="/AlokasiAnggaran/History" style="font-size:0.8rem;color:var(--primary, #1e3a8a);font-weight:600;text-decoration:none;">
+                    Buka Riwayat Lengkap <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                @if (Model?.RiwayatSatuMinggu != null && Model.RiwayatSatuMinggu.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table-data">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width:50px;">No</th>
+                                    <th>Catatan / Keterangan</th>
+                                    <th class="text-end">Total Pagu Dana</th>
+                                    <th>Tanggal Proses</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end" style="width:130px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.RiwayatSatuMinggu.Count; i++)
+                                {
+                                    var item = Model.RiwayatSatuMinggu[i];
+                                    <tr>
+                                        <td class="text-center">@(i + 1)</td>
+                                        <td><strong>@(string.IsNullOrWhiteSpace(item.Catatan) ? "-" : item.Catatan)</strong></td>
+                                        <td class="text-end" style="font-weight:700;color:var(--primary, #1e3a8a);">@item.TotalDana.ToRupiah()</td>
+                                        <td>@item.TanggalProses.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="text-center">
+                                            <span class="badge-status @(item.Status == "Optimal" ? "badge-optimal" : "badge-nosol")">
+                                                <i class="fas @(item.Status == "Optimal" ? "fa-circle-check" : "fa-circle-xmark")"></i> @item.Status
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="/AlokasiAnggaran/Detail/@item.Id" class="btn-table-detail">
+                                                <i class="fas fa-eye"></i> Detail
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-calendar-xmark"></i></div>
+                        <h5 style="font-size:1rem;color:#0f172a;font-weight:700;">Tidak Ada Sesi Alokasi Dalam 1 Minggu Terakhir</h5>
+                        <p style="color:#64748b;margin-top:.35rem;font-size:.85rem;">Belum ada kalkulasi anggaran yang diproses dalam periode 7 hari terakhir.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

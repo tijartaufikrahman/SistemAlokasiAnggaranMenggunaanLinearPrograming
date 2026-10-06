@@ -1,0 +1,83 @@
+// Database Schema FinAlok - Sistem Alokasi Anggaran
+// Render this in https://dbdiagram.io
+
+Table Roles {
+  Id int [pk, increment]
+  NamaRole varchar(50) [not null]
+  Deskripsi varchar(200)
+  CreatedAt datetime [not null, default: `now()`]
+  UpdatedAt datetime
+  CreatedBy int
+  UpdatedBy int
+}
+
+Table Users {
+  Id int [pk, increment]
+  NamaLengkap varchar(100) [not null]
+  Email varchar(100) [not null, unique]
+  PasswordHash varchar(255) [not null]
+  RoleId int [not null]
+  IsActive boolean [not null, default: true]
+  ResetPasswordToken text
+  ResetPasswordExpiry datetime
+  CreatedAt datetime [not null, default: `now()`]
+  UpdatedAt datetime
+  CreatedBy int
+  UpdatedBy int
+}
+
+Table Menu_Roles {
+  Id int [pk, increment]
+  RoleId int [not null]
+  NamaMenu varchar(100) [not null]
+  Icon varchar(100)
+  Url varchar(200) [not null]
+  Urutan int [not null, default: 0]
+  CreatedAt datetime [not null, default: `now()`]
+  UpdatedAt datetime
+  CreatedBy int
+  UpdatedBy int
+}
+
+Table alokasi_anggaran {
+  Id int [pk, increment]
+  Catatan varchar(255) [note: 'Catatan atau keterangan alokasi anggaran (menggantikan periode)']
+  TotalDana real [not null, default: 0, note: 'Pagu total anggaran yang ditetapkan di akhir']
+  Status varchar(20) [not null, default: 'Draft', note: 'Draft saat input program, Optimal setelah optimasi']
+  CreatedAt datetime [not null, default: `now()`]
+  UpdatedAt datetime
+  CreatedBy int [not null]
+  UpdatedBy int
+}
+
+Table program_anggaran {
+  Id int [pk, increment]
+  AlokasiAnggaranId int [not null, note: 'Relasi ke sesi alokasi / draft']
+  NamaProgram varchar(200) [not null]
+  AnggaranDiajukan real [note: 'Usulan awal anggaran program']
+  AnggaranMinimum real [note: 'Batas bawah kendala Simplex']
+  AnggaranMaksimum real [note: 'Batas atas kendala Simplex']
+  TingkatPrioritas int [not null, note: 'Skala 1 - 5']
+  EstimasiManfaat int [not null, note: 'Skala 0 - 100']
+  CreatedAt datetime [not null, default: `now()`]
+  UpdatedAt datetime
+  CreatedBy int [not null]
+  UpdatedBy int
+}
+
+Table hasil_alokasi {
+  Id int [pk, increment]
+  ProgramAnggaranId int [not null, unique, note: 'One-to-One dengan program kegiatan']
+  AlokasiOptimal real [not null, note: 'Keputusan hasil kalkulasi Simplex Linear Programming']
+  CreatedAt datetime [not null, default: `now()`]
+  UpdatedAt datetime
+  CreatedBy int [not null]
+  UpdatedBy int
+}
+
+// Relationships
+Ref: Users.RoleId > Roles.Id [delete: cascade]
+Ref: Menu_Roles.RoleId > Roles.Id [delete: cascade]
+Ref: alokasi_anggaran.CreatedBy > Users.Id [delete: restrict]
+Ref: program_anggaran.AlokasiAnggaranId > alokasi_anggaran.Id [delete: cascade]
+Ref: hasil_alokasi.ProgramAnggaranId - program_anggaran.Id [delete: cascade]
